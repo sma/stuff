@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Java 2 Dart</title>
+    <link rel="stylesheet" href="java2dartweb.css">
+  </head>
+  <body>
+    <div id="container">
+      <h1>Java 2 Dart Translator</h1>
+      <p>Paste your Java code into the left pane, copy your Dart code from the right pane.</p>
+      
+      <textarea id="java">class Hello {
+  public static void main() {
+    System.out.println("Hello, World");
+  }
+}</textarea>
+      <pre id="dart"></pre>
+      <div style="clear:both"></div>
+    </div>
+    
+    <div id="footer">
+      &copy;2014 by Stefan Matthias Aust. See <a href="https://gist.github.com/sma/8180927">https://gist.github.com/sma/8180927</a>.
+    </div>
+    
+    <script type="application/dart" src="java2dartweb.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

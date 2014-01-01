@@ -1,0 +1,64 @@
+
+body {
+  background-color: #333;
+  font-family: 'Open Sans', sans-serif;
+  margin: 0;
+}
+
+h1, p {
+  color: #333;
+  margin: 0;
+  padding: 1em 1% 0 1%;
+}
+
+p {
+  padding-bottom: 1em;
+}
+
+#container {
+  background-color: #ddd;
+  padding: 0 0 2em 0;
+  height: 95%;
+}
+
+#java, #dart {
+  float: left;
+  box-sizing: border-box;
+  background-color: #fff;
+  font-family: Menlo, sans-serif;
+  width: 47%;
+  height: 700px;
+  border: 1px solid #ccc;
+  padding: 1em;
+  margin: 1%;
+}
+
+#dart {
+  font-size: 11px;
+  overflow: scroll;
+}
+
+#dart .k {
+  font-weight: bold;
+  color: #000;
+}
+
+#dart .l {
+  color: #666;
+}
+
+#dart .c {
+  font-style: italic;
+  color: #999;
+}
+
+#footer {
+  padding: 1em;
+  font-size: 80%;
+  text-align: center;
+  color: #666; 
+}
+
+#footer a {
+  color: #777;
+}
