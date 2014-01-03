@@ -523,6 +523,9 @@ var $$ = {};
         throw H.wrapException(new P.ArgumentError(other));
       return receiver + other;
     },
+    $sub: function(receiver, other) {
+      return receiver - other;
+    },
     _tdivFast$1: function(receiver, other) {
       return (receiver | 0) === receiver ? receiver / other | 0 : this.toInt$0(receiver / other);
     },
@@ -566,6 +569,9 @@ var $$ = {};
       if (index >= receiver.length)
         throw H.wrapException(P.RangeError$value(index));
       return receiver.charCodeAt(index);
+    },
+    allMatches$1: function(receiver, str) {
+      return H.allMatchesInStringUnchecked(receiver, str);
     },
     matchAsPrefix$2: function(receiver, string, start) {
       var t1, t2, i, t3;
@@ -2335,8 +2341,36 @@ var $$ = {};
   applyHooksTransformer: function(transformer, hooks) {
     return transformer(hooks) || hooks;
   },
+  allMatchesInStringUnchecked: function(needle, haystack) {
+    var result, $length, patternLength, startIndex, position, endIndex;
+    result = H.setRuntimeTypeInfo([], [P.Match]);
+    $length = haystack.length;
+    patternLength = needle.length;
+    for (startIndex = 0; true;) {
+      position = C.JSString_methods.indexOf$2(haystack, needle, startIndex);
+      if (position === -1)
+        break;
+      result.push(new H.StringMatch(position, haystack, needle));
+      endIndex = position + patternLength;
+      if (endIndex === $length)
+        break;
+      else
+        startIndex = position === endIndex ? startIndex + 1 : endIndex;
+    }
+    return result;
+  },
   stringContainsUnchecked: function(receiver, other, startIndex) {
-    return C.JSString_methods.indexOf$2(receiver, other, startIndex) !== -1;
+    var t1;
+    if (typeof other === "string")
+      return C.JSString_methods.indexOf$2(receiver, other, startIndex) !== -1;
+    else {
+      t1 = J.getInterceptor$s(other);
+      if (typeof other === "object" && other !== null && !!t1.$isJSSyntaxRegExp) {
+        t1 = C.JSString_methods.substring$1(receiver, startIndex);
+        return other._nativeRegExp.test(t1);
+      } else
+        return J.get$isNotEmpty$asx(t1.allMatches$1(other, C.JSString_methods.substring$1(receiver, startIndex)));
+    }
   },
   stringReplaceAllUnchecked: function(receiver, from, to) {
     var result, $length, i, t1;
@@ -2823,6 +2857,11 @@ var $$ = {};
       this._nativeAnchoredRegExp = t1;
       return t1;
     },
+    allMatches$1: function(_, str) {
+      if (typeof str !== "string")
+        H.throwExpression(new P.ArgumentError(str));
+      return new H._AllMatchesIterable(this, str);
+    },
     _execGlobal$2: function(string, start) {
       var regexp, match;
       regexp = this.get$_nativeGlobalVersion();
@@ -2853,6 +2892,7 @@ var $$ = {};
         throw H.wrapException(P.RangeError$range(start, 0, string.length));
       return this._execAnchored$2(string, start);
     },
+    $isJSSyntaxRegExp: true,
     static: {JSSyntaxRegExp_makeNative: function(pattern, multiLine, caseSensitive, global) {
         var m, i, g, regexp, errorMessage;
         m = multiLine ? "m" : "";
@@ -2875,11 +2915,18 @@ var $$ = {};
     },
     _MatchImplementation$2: function(pattern, _match) {
     },
+    $isMatch: true,
     static: {_MatchImplementation$: function(pattern, _match) {
         var t1 = new H._MatchImplementation(pattern, _match);
         t1._MatchImplementation$2(pattern, _match);
         return t1;
       }}
+  },
+  _AllMatchesIterable: {
+    "": "IterableBase;_re,_string",
+    get$iterator: function(_) {
+      return new H._AllMatchesIterator(this._re, this._string, null);
+    }
   },
   _AllMatchesIterator: {
     "": "Object;_regExp,_string,__js_helper$_current",
@@ -2919,7 +2966,8 @@ var $$ = {};
       if (g !== 0)
         H.throwExpression(P.RangeError$value(g));
       return this.pattern;
-    }
+    },
+    $isMatch: true
   }
 }],
 ["dart._collection.dev", "dart:_collection-dev", , H, {
@@ -4920,7 +4968,7 @@ var $$ = {};
     },
     containsKey$1: function(key) {
       var strings, rest;
-      if (key !== "__proto__") {
+      if (typeof key === "string" && key !== "__proto__") {
         strings = this._strings;
         return strings == null ? false : strings[key] != null;
       } else {
@@ -6265,6 +6313,9 @@ var $$ = {};
     $add: function(_, other) {
       return P.Duration$(0, 0, C.JSInt_methods.$add(this._duration, other.get$_duration()), 0, 0, 0);
     },
+    $sub: function(_, other) {
+      return P.Duration$(0, 0, C.JSInt_methods.$sub(this._duration, other.get$_duration()), 0, 0, 0);
+    },
     $lt: function(_, other) {
       return C.JSInt_methods.$lt(this._duration, other.get$_duration());
     },
@@ -6492,7 +6543,8 @@ var $$ = {};
     }
   },
   Match: {
-    "": "Object;"
+    "": "Object;",
+    $isMatch: true
   },
   StackTrace: {
     "": "Object;"
@@ -7654,7 +7706,7 @@ var $$ = {};
       throw H.wrapException(P.Exception_Exception(message));
     }, "call$1" /* tearOffInfo */, "get$error", 2, 0, 26],
     Scanner$1: function(source) {
-      var t1 = H.JSSyntaxRegExp_makeNative("\\s+|//.*$|/\\*[\\s\\S]*?\\*/|(0x[0-9a-fA-F]+|(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?|[\\w$_]+|\"(?:\\\\.|[^\"])*?\"|'(?:\\\\.|[^'])+?'|&&|\\|\\||\\+\\+|--|[+\\-*/%&^|]=?|<<=?|>>>?=?|[=<>!]=?|~|[.]{3}|[.,;()[\\]{}?:])|(.)", true, true, false);
+      var t1 = H.JSSyntaxRegExp_makeNative("\\s+|//.*$|/\\*[\\s\\S]*?\\*/|(0x[0-9a-fA-F]+|(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?[lLfF]?|[\\w$_]+|\"(?:\\\\.|[^\"])*?\"|'(?:\\\\.|[^'])+?'|&&|\\|\\||\\+\\+|--|[+\\-*/%&^|]=?|<<=?|>>>?=?|[=<>!]=?|~|[.]{3}|[.,;()[\\]{}?:])|(.)", true, true, false);
       if (typeof source !== "string")
         H.throwExpression(new P.ArgumentError(source));
       this._java2dart$_matches = new H._AllMatchesIterator(new H.JSSyntaxRegExp(t1, null, null), source, null);
@@ -8264,7 +8316,7 @@ var $$ = {};
       return $arguments;
     },
     parseLiteral$0: function() {
-      var type, expression, e, $name;
+      var type, list, expression, e, n, t1, $name;
       if (this.at$1("null"))
         return ["literal", null];
       if (this.at$1("true"))
@@ -8275,6 +8327,17 @@ var $$ = {};
         type = this.parseType$0();
         if (this.at$1("[")) {
           for (; this.at$1("]");) {
+            if (this.at$1("{")) {
+              list = [];
+              for (; !this.at$1("}");) {
+                list.push(this.parseExpression$0());
+                if (this.at$1("}"))
+                  break;
+                if (!this.at$1(","))
+                  this.error$1(0, "expected , but found " + H.S(this.currentToken));
+              }
+              return ["new_array_from", type, list];
+            }
             type = ["array_type", type];
             if (!this.at$1("["))
               this.error$1(0, "expected [ but found " + H.S(this.currentToken));
@@ -8302,8 +8365,11 @@ var $$ = {};
       }
       if (this.get$isString())
         return ["literal", this.advance$0()];
-      if (J.startsWith$1$s(this.currentToken, new H.JSSyntaxRegExp(H.JSSyntaxRegExp_makeNative("\\.?[\\d]", false, true, false), null, null)))
-        return ["literal", P.num_parse(this.advance$0(), null)];
+      if (J.startsWith$1$s(this.currentToken, new H.JSSyntaxRegExp(H.JSSyntaxRegExp_makeNative("\\.?[\\d]", false, true, false), null, null))) {
+        n = this.advance$0();
+        t1 = J.getInterceptor$asx(n);
+        return ["literal", P.num_parse(t1.contains$1(n, new H.JSSyntaxRegExp(H.JSSyntaxRegExp_makeNative("[lLfF]$", false, true, false), null, null)) === true ? t1.substring$2(n, 0, J.$sub$n(t1.get$length(n), 1)) : n, null)];
+      }
       if (J.startsWith$1$s(this.currentToken, new H.JSSyntaxRegExp(H.JSSyntaxRegExp_makeNative("[\\w$_]", false, true, false), null, null))) {
         $name = this.advance$0();
         if (J.startsWith$1$s(this.currentToken, new H.JSSyntaxRegExp(H.JSSyntaxRegExp_makeNative("[\\w$_]", false, true, false), null, null)))
@@ -8366,7 +8432,7 @@ var $$ = {};
       t8 = this._binaryExpression$1("^");
       t9 = this._binaryExpression$1("<<");
       t10 = this._binaryExpression$1(">>");
-      this._funcs = H.fillLiteralMap(["unit", new Y.Translator_closure(this), "import", new Y.Translator_closure0(this), "class", new Y.Translator_closure1(this), "interface", new Y.Translator_closure2(this), "variable_declarations", new Y.Translator_closure3(this), "variable_declaration", new Y.Translator_closure4(this), "array", new Y.Translator_closure5(this), "modifiers", new Y.Translator_closure6(), "constructor", new Y.Translator_closure7(this), "method", new Y.Translator_closure8(this), "parameter", new Y.Translator_closure9(this), "rest_parameter", new Y.Translator_closure10(this), "block", new Y.Translator_closure11(this), "primitive_type", new Y.Translator_closure12(this), "reference_type", new Y.Translator_closure13(this), "array_type", new Y.Translator_closure14(this), "generic_type", new Y.Translator_closure15(this), "type_parameters", new Y.Translator_closure16(), "expression", new Y.Translator_closure17(this), "call", new Y.Translator_closure18(this), "field", new Y.Translator_closure19(this), "literal", new Y.Translator_closure20(), "variable", new Y.Translator_closure21(this), "new_array", new Y.Translator_closure22(this), "new_instance", new Y.Translator_closure23(this), "+", t1, "-", t2, "*", t3, "/", t4, "%", t5, "&", t6, "|", t7, "^", t8, "<<", t9, ">>", t10, ">>>", t10, "&&", this._binaryExpression$1("&&"), "||", this._binaryExpression$1("||"), "<", this._binaryExpression$1("<"), "<=", this._binaryExpression$1("<="), ">", this._binaryExpression$1(">"), ">=", this._binaryExpression$1(">="), "==", this._binaryExpression$1("=="), "!=", this._binaryExpression$1("!="), "=", this._binaryExpression$1("="), "+=", this._binaryExpression$1("+="), "-=", this._binaryExpression$1("-="), "*=", this._binaryExpression$1("*="), "/=", this._binaryExpression$1("~/="), "[]", new Y.Translator_closure24(this), "p++", new Y.Translator_closure25(this), "p--", new Y.Translator_closure26(this), "++p", new Y.Translator_closure27(this), "--p", new Y.Translator_closure28(this), "!", new Y.Translator_closure29(this), "~", new Y.Translator_closure30(this), "-p", new Y.Translator_closure31(this), "+p", new Y.Translator_closure32(this), "cast", new Y.Translator_closure33(this), "?:", new Y.Translator_closure34(this), "if", new Y.Translator_closure35(this), "return", new Y.Translator_closure36(this), "for", new Y.Translator_closure37(this), "foreach", new Y.Translator_closure38(this), "dowhile", new Y.Translator_closure39(this), "whiledo", new Y.Translator_closure40(this), "try", new Y.Translator_closure41(this), "catch", new Y.Translator_closure42(this), "assert", new Y.Translator_closure43(this), "break", new Y.Translator_closure44(this), "continue", new Y.Translator_closure45(this), "switch", new Y.Translator_closure46(this), "case", new Y.Translator_closure47(this), "default", new Y.Translator_closure48(this), "label", new Y.Translator_closure49(this), "throw", new Y.Translator_closure50(this)], P.LinkedHashMap_LinkedHashMap(null, null, null, null, null));
+      this._funcs = H.fillLiteralMap(["unit", new Y.Translator_closure(this), "import", new Y.Translator_closure0(this), "class", new Y.Translator_closure1(this), "interface", new Y.Translator_closure2(this), "variable_declarations", new Y.Translator_closure3(this), "variable_declaration", new Y.Translator_closure4(this), "array", new Y.Translator_closure5(this), "modifiers", new Y.Translator_closure6(), "constructor", new Y.Translator_closure7(this), "method", new Y.Translator_closure8(this), "parameter", new Y.Translator_closure9(this), "rest_parameter", new Y.Translator_closure10(this), "block", new Y.Translator_closure11(this), "primitive_type", new Y.Translator_closure12(this), "reference_type", new Y.Translator_closure13(this), "array_type", new Y.Translator_closure14(this), "generic_type", new Y.Translator_closure15(this), "type_parameters", new Y.Translator_closure16(), "expression", new Y.Translator_closure17(this), "call", new Y.Translator_closure18(this), "field", new Y.Translator_closure19(this), "literal", new Y.Translator_closure20(), "variable", new Y.Translator_closure21(this), "new_array", new Y.Translator_closure22(this), "new_array_from", new Y.Translator_closure23(this), "new_instance", new Y.Translator_closure24(this), "+", t1, "-", t2, "*", t3, "/", t4, "%", t5, "&", t6, "|", t7, "^", t8, "<<", t9, ">>", t10, ">>>", t10, "&&", this._binaryExpression$1("&&"), "||", this._binaryExpression$1("||"), "<", this._binaryExpression$1("<"), "<=", this._binaryExpression$1("<="), ">", this._binaryExpression$1(">"), ">=", this._binaryExpression$1(">="), "==", this._binaryExpression$1("=="), "!=", this._binaryExpression$1("!="), "=", this._binaryExpression$1("="), "+=", this._binaryExpression$1("+="), "-=", this._binaryExpression$1("-="), "*=", this._binaryExpression$1("*="), "/=", this._binaryExpression$1("~/="), "&=", this._binaryExpression$1("&="), "|=", this._binaryExpression$1("|="), "[]", new Y.Translator_closure25(this), "p++", new Y.Translator_closure26(this), "p--", new Y.Translator_closure27(this), "++p", new Y.Translator_closure28(this), "--p", new Y.Translator_closure29(this), "!", new Y.Translator_closure30(this), "~", new Y.Translator_closure31(this), "-p", new Y.Translator_closure32(this), "+p", new Y.Translator_closure33(this), "cast", new Y.Translator_closure34(this), "?:", new Y.Translator_closure35(this), "if", new Y.Translator_closure36(this), "return", new Y.Translator_closure37(this), "for", new Y.Translator_closure38(this), "foreach", new Y.Translator_closure39(this), "dowhile", new Y.Translator_closure40(this), "whiledo", new Y.Translator_closure41(this), "try", new Y.Translator_closure42(this), "catch", new Y.Translator_closure43(this), "assert", new Y.Translator_closure44(this), "break", new Y.Translator_closure45(this), "continue", new Y.Translator_closure46(this), "switch", new Y.Translator_closure47(this), "case", new Y.Translator_closure48(this), "default", new Y.Translator_closure49(this), "label", new Y.Translator_closure50(this), "throw", new Y.Translator_closure51(this), "pass", new Y.Translator_closure52()], P.LinkedHashMap_LinkedHashMap(null, null, null, null, null));
       this._resolver._scopes.push(H.fillLiteralMap([], P.LinkedHashMap_LinkedHashMap(null, null, null, null, null)));
     },
     static: {Translator$: function(_sink) {
@@ -8782,7 +8848,7 @@ var $$ = {};
       t1 = this.this_23;
       t2 = J.getInterceptor$asx(node);
       t3 = t2.$index(node, 1);
-      return "new " + H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + "(" + H.S(J.map$1$ax(t2.$index(node, 2), t1.get$translate(0)).map$1(0, t1.get$_strip()).join$1(0, ", ")) + ")";
+      return "new List<" + H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + ">.from([" + H.S(J.map$1$ax(t2.$index(node, 2), t1.get$translate(0)).map$1(0, t1.get$_strip()).join$1(0, ", ")) + "])";
     }
   },
   Translator_closure24: {
@@ -8792,79 +8858,89 @@ var $$ = {};
       t1 = this.this_24;
       t2 = J.getInterceptor$asx(node);
       t3 = t2.$index(node, 1);
-      t3 = H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + "[";
-      t2 = t2.$index(node, 2);
-      return t3 + t1._strip$1(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + "]";
+      return "new " + H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + "(" + H.S(J.map$1$ax(t2.$index(node, 2), t1.get$translate(0)).map$1(0, t1.get$_strip()).join$1(0, ", ")) + ")";
     }
   },
   Translator_closure25: {
     "": "Closure:14;this_25",
     call$1: function(node) {
-      var t1 = J.$index$asx(node, 1);
-      return H.S(this.this_25._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + "++";
+      var t1, t2, t3;
+      t1 = this.this_25;
+      t2 = J.getInterceptor$asx(node);
+      t3 = t2.$index(node, 1);
+      t3 = H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + "[";
+      t2 = t2.$index(node, 2);
+      return t3 + t1._strip$1(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + "]";
     }
   },
   Translator_closure26: {
     "": "Closure:14;this_26",
     call$1: function(node) {
       var t1 = J.$index$asx(node, 1);
-      return H.S(this.this_26._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + "--";
+      return H.S(this.this_26._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + "++";
     }
   },
   Translator_closure27: {
     "": "Closure:14;this_27",
     call$1: function(node) {
       var t1 = J.$index$asx(node, 1);
-      return "(++" + H.S(this.this_27._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
+      return H.S(this.this_27._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + "--";
     }
   },
   Translator_closure28: {
     "": "Closure:14;this_28",
     call$1: function(node) {
       var t1 = J.$index$asx(node, 1);
-      return "(--" + H.S(this.this_28._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
+      return "(++" + H.S(this.this_28._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
     }
   },
   Translator_closure29: {
     "": "Closure:14;this_29",
     call$1: function(node) {
       var t1 = J.$index$asx(node, 1);
-      return "(!" + H.S(this.this_29._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
+      return "(--" + H.S(this.this_29._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
     }
   },
   Translator_closure30: {
     "": "Closure:14;this_30",
     call$1: function(node) {
       var t1 = J.$index$asx(node, 1);
-      return "(~" + H.S(this.this_30._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
+      return "(!" + H.S(this.this_30._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
     }
   },
   Translator_closure31: {
     "": "Closure:14;this_31",
     call$1: function(node) {
       var t1 = J.$index$asx(node, 1);
-      return "(-" + H.S(this.this_31._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
+      return "(~" + H.S(this.this_31._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
     }
   },
   Translator_closure32: {
     "": "Closure:14;this_32",
     call$1: function(node) {
       var t1 = J.$index$asx(node, 1);
-      return "(+" + H.S(this.this_32._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
+      return "(-" + H.S(this.this_32._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
     }
   },
   Translator_closure33: {
     "": "Closure:14;this_33",
     call$1: function(node) {
-      var t1 = J.$index$asx(node, 2);
-      return this.this_33._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1);
+      var t1 = J.$index$asx(node, 1);
+      return "(+" + H.S(this.this_33._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ")";
     }
   },
   Translator_closure34: {
     "": "Closure:14;this_34",
     call$1: function(node) {
+      var t1 = J.$index$asx(node, 2);
+      return this.this_34._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1);
+    }
+  },
+  Translator_closure35: {
+    "": "Closure:14;this_35",
+    call$1: function(node) {
       var t1, t2, t3, t4;
-      t1 = this.this_34;
+      t1 = this.this_35;
       t2 = J.getInterceptor$asx(node);
       t3 = t2.$index(node, 1);
       t3 = "(" + H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + " ? ";
@@ -8874,11 +8950,11 @@ var $$ = {};
       return t4 + H.S(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + ")";
     }
   },
-  Translator_closure35: {
-    "": "Closure:14;this_35",
+  Translator_closure36: {
+    "": "Closure:14;this_36",
     call$1: function(node) {
       var t1, t2, t3;
-      t1 = this.this_35;
+      t1 = this.this_36;
       t2 = J.getInterceptor$asx(node);
       t3 = t2.$index(node, 1);
       t1.emit$1("if (" + t1._strip$1(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + ") {");
@@ -8896,12 +8972,12 @@ var $$ = {};
       t1.emit$1("}");
     }
   },
-  Translator_closure36: {
-    "": "Closure:14;this_36",
+  Translator_closure37: {
+    "": "Closure:14;this_37",
     call$1: function(node) {
       var t1, t2;
       t1 = J.getInterceptor$asx(node);
-      t2 = this.this_36;
+      t2 = this.this_37;
       if (t1.$index(node, 1) != null) {
         t1 = t1.$index(node, 1);
         t2.emit$1("return " + t2._strip$1(t2._funcs.$index(0, J.$index$asx(t1, 0)).call$1(t1)) + ";");
@@ -8909,8 +8985,8 @@ var $$ = {};
         t2.emit$1("return;");
     }
   },
-  Translator_closure37: {
-    "": "Closure:14;this_37",
+  Translator_closure38: {
+    "": "Closure:14;this_38",
     call$1: function(node) {
       var t1, t2, t3, i, t4;
       t1 = {};
@@ -8919,13 +8995,13 @@ var $$ = {};
       J.forEach$1$ax(t2.$index(node, 1), new Y.Translator__closure(t1));
       t3 = t1.i_0;
       if (t3.length > 1) {
-        H.IterableMixinWorkaround_forEach(t3, new Y.Translator__closure0(this.this_37));
+        H.IterableMixinWorkaround_forEach(t3, new Y.Translator__closure0(this.this_38));
         i = [];
         t1.i_0 = i;
         t1 = i;
       } else
         t1 = t3;
-      t3 = this.this_37;
+      t3 = this.this_38;
       t1 = "for (" + H.setRuntimeTypeInfo(new H.MappedListIterable(t1, t3.get$translate(0)), [null, null]).join$1(0, ", ") + "; ";
       if (t2.$index(node, 2) != null) {
         t4 = t2.$index(node, 2);
@@ -8953,17 +9029,17 @@ var $$ = {};
     }
   },
   Translator__closure0: {
-    "": "Closure:14;this_38",
+    "": "Closure:14;this_39",
     call$1: function(n) {
-      var t1 = this.this_38;
+      var t1 = this.this_39;
       return t1.emit$1(H.S(t1._funcs.$index(0, J.$index$asx(n, 0)).call$1(n)) + ";");
     }
   },
-  Translator_closure38: {
-    "": "Closure:14;this_39",
+  Translator_closure39: {
+    "": "Closure:14;this_40",
     call$1: function(node) {
       var t1, t2, t3, t4;
-      t1 = this.this_39;
+      t1 = this.this_40;
       t2 = J.getInterceptor$asx(node);
       t3 = t2.$index(node, 1);
       t3 = "for (" + H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + " in ";
@@ -8976,11 +9052,11 @@ var $$ = {};
       t1.emit$1("}");
     }
   },
-  Translator_closure39: {
-    "": "Closure:14;this_40",
+  Translator_closure40: {
+    "": "Closure:14;this_41",
     call$1: function(node) {
       var t1, t2, t3;
-      t1 = this.this_40;
+      t1 = this.this_41;
       t1.emit$1("do {");
       t1._indent = t1._indent + 1;
       t2 = J.getInterceptor$asx(node);
@@ -8991,11 +9067,11 @@ var $$ = {};
       t1.emit$1("} while (" + t1._strip$1(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + ");");
     }
   },
-  Translator_closure40: {
-    "": "Closure:14;this_41",
+  Translator_closure41: {
+    "": "Closure:14;this_42",
     call$1: function(node) {
       var t1, t2, t3;
-      t1 = this.this_41;
+      t1 = this.this_42;
       t2 = J.getInterceptor$asx(node);
       t3 = t2.$index(node, 1);
       t1.emit$1("while (" + t1._strip$1(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + ") {");
@@ -9006,11 +9082,11 @@ var $$ = {};
       t1.emit$1("}");
     }
   },
-  Translator_closure41: {
-    "": "Closure:14;this_42",
+  Translator_closure42: {
+    "": "Closure:14;this_43",
     call$1: function(node) {
       var t1, t2, t3;
-      t1 = this.this_42;
+      t1 = this.this_43;
       t1.emit$1("try {");
       t1._indent = t1._indent + 1;
       t2 = J.getInterceptor$asx(node);
@@ -9028,11 +9104,11 @@ var $$ = {};
       t1.emit$1("}");
     }
   },
-  Translator_closure42: {
-    "": "Closure:14;this_43",
+  Translator_closure43: {
+    "": "Closure:14;this_44",
     call$1: function(node) {
       var t1, t2, t3;
-      t1 = this.this_43;
+      t1 = this.this_44;
       t2 = J.getInterceptor$asx(node);
       t3 = J.$index$asx(t2.$index(node, 1), 1);
       t1.emit$1("} on " + H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + " catch (" + H.S(t1._dartName$1(J.$index$asx(t2.$index(node, 1), 2))) + ") {");
@@ -9042,22 +9118,13 @@ var $$ = {};
       t1._indent = t1._indent - 1;
     }
   },
-  Translator_closure43: {
-    "": "Closure:14;this_44",
-    call$1: function(node) {
-      var t1, t2;
-      t1 = this.this_44;
-      t2 = J.$index$asx(node, 1);
-      t1.emit$1("assert(" + t1._strip$1(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + ");");
-    }
-  },
   Translator_closure44: {
     "": "Closure:14;this_45",
     call$1: function(node) {
-      var t1 = J.getInterceptor$asx(node);
-      if (t1.$index(node, 1) != null)
-        this.this_45.emit$1("break " + H.S(t1.$index(node, 1)) + ";");
-      this.this_45.emit$1("break;");
+      var t1, t2;
+      t1 = this.this_45;
+      t2 = J.$index$asx(node, 1);
+      t1.emit$1("assert(" + t1._strip$1(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + ");");
     }
   },
   Translator_closure45: {
@@ -9065,15 +9132,24 @@ var $$ = {};
     call$1: function(node) {
       var t1 = J.getInterceptor$asx(node);
       if (t1.$index(node, 1) != null)
-        this.this_46.emit$1("continue " + H.S(t1.$index(node, 1)) + ";");
-      this.this_46.emit$1("continue;");
+        this.this_46.emit$1("break " + H.S(t1.$index(node, 1)) + ";");
+      this.this_46.emit$1("break;");
     }
   },
   Translator_closure46: {
     "": "Closure:14;this_47",
     call$1: function(node) {
+      var t1 = J.getInterceptor$asx(node);
+      if (t1.$index(node, 1) != null)
+        this.this_47.emit$1("continue " + H.S(t1.$index(node, 1)) + ";");
+      this.this_47.emit$1("continue;");
+    }
+  },
+  Translator_closure47: {
+    "": "Closure:14;this_48",
+    call$1: function(node) {
       var t1, t2, t3;
-      t1 = this.this_47;
+      t1 = this.this_48;
       t2 = J.getInterceptor$asx(node);
       t3 = t2.$index(node, 1);
       t1.emit$1("switch (" + H.S(t1._funcs.$index(0, J.$index$asx(t3, 0)).call$1(t3)) + ") {");
@@ -9087,39 +9163,44 @@ var $$ = {};
       t1.emit$1("}");
     }
   },
-  Translator_closure47: {
-    "": "Closure:14;this_48",
+  Translator_closure48: {
+    "": "Closure:14;this_49",
     call$1: function(node) {
       var t1, t2;
-      t1 = this.this_48;
+      t1 = this.this_49;
       t1._indent = t1._indent - 1;
       t2 = J.$index$asx(node, 1);
       t1.emit$1("case " + H.S(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + ":");
       t1._indent = t1._indent + 1;
     }
   },
-  Translator_closure48: {
-    "": "Closure:14;this_49",
+  Translator_closure49: {
+    "": "Closure:14;this_50",
     call$1: function(node) {
-      var t1 = this.this_49;
+      var t1 = this.this_50;
       t1._indent = t1._indent - 1;
       t1.emit$1("default:");
       t1._indent = t1._indent + 1;
     }
   },
-  Translator_closure49: {
-    "": "Closure:14;this_50",
-    call$1: function(node) {
-      this.this_50.emit$1(H.S(J.$index$asx(node, 1)) + ":");
-    }
-  },
   Translator_closure50: {
     "": "Closure:14;this_51",
     call$1: function(node) {
+      this.this_51.emit$1(H.S(J.$index$asx(node, 1)) + ":");
+    }
+  },
+  Translator_closure51: {
+    "": "Closure:14;this_52",
+    call$1: function(node) {
       var t1, t2;
-      t1 = this.this_51;
+      t1 = this.this_52;
       t2 = J.$index$asx(node, 1);
       t1.emit$1("throw " + H.S(t1._funcs.$index(0, J.$index$asx(t2, 0)).call$1(t2)) + ";");
+    }
+  },
+  Translator_closure52: {
+    "": "Closure:14;",
+    call$1: function(node) {
     }
   },
   Translator__binaryExpression_closure: {
@@ -9376,6 +9457,11 @@ J.$indexSet$ax = function(receiver, a0, a1) {
   if ((receiver.constructor == Array || H.isJsIndexable(receiver, receiver[init.dispatchPropertyName])) && !receiver.immutable$list && a0 >>> 0 === a0 && a0 < receiver.length)
     return receiver[a0] = a1;
   return J.getInterceptor$ax(receiver).$indexSet(receiver, a0, a1);
+};
+J.$sub$n = function(receiver, a0) {
+  if (typeof receiver == "number" && typeof a0 == "number")
+    return receiver - a0;
+  return J.getInterceptor$n(receiver).$sub(receiver, a0);
 };
 J.addEventListener$3$x = function(receiver, a0, a1, a2) {
   return J.getInterceptor$x(receiver).addEventListener$3(receiver, a0, a1, a2);

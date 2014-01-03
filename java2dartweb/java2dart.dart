@@ -13,7 +13,7 @@ class Scanner {
         '\\s+|//.*\$|/\\*[\\s\\S]*?\\*/|'             // whitespace & comments
         '(0x[0-9a-fA-F]+|'                            // numbers
         '(?:\\d+(?:\\.\\d*)?|\\.\\d+)'                // numbers
-        '(?:[eE][-+]?\\d+)?|'                         // numbers
+        '(?:[eE][-+]?\\d+)?[lLfF]?|'                  // numbers
         '[\\w\$_]+|'                                  // names & keywords
         '"(?:\\\\.|[^"])*?"|\'(?:\\\\.|[^\'])+?\'|'   // strings & characters
         '&&|\\|\\||\\+\\+|--|'                        // operators
@@ -693,6 +693,17 @@ class Parser extends Scanner {
       var type = parseType();
       if (at("[")) {
         while (at("]")) {
+          if (at("{")) {
+            var list = [];
+            while (!at("}")) {
+              list.add(parseExpression());
+              if (at("}")) {
+                break;
+              }
+              expect(",");
+            }
+            return ["new_array_from", type, list];
+          }
           type = ["array_type", type];
           expect("[");
         }
@@ -720,7 +731,11 @@ class Parser extends Scanner {
       return ["literal", advance()];
     }
     if (isNumber) {
-      return ["literal", num.parse(advance())];
+      var n = advance();
+      if (n.contains(new RegExp("[lLfF]\$"))) {
+        n = n.substring(0, n.length - 1);
+      }
+      return ["literal", num.parse(n)];
     }
     // need to distinguish type declarations and variables
     // a sequence of two names should be a type declaration
@@ -1006,6 +1021,9 @@ class Translator {
       "new_array": (node) {
         return "new List<${translate(node[1])}>(${translate(node[2])})";
       },
+      "new_array_from": (node) {
+        return "new List<${translate(node[1])}>.from([${node[2].map(translate).map(_strip).join(", ")}])";
+      },
       "new_instance": (node) {
         return "new ${translate(node[1])}(${node[2].map(translate).map(_strip).join(", ")})";
       },
@@ -1034,6 +1052,8 @@ class Translator {
       "-=": _binaryExpression("-="),
       "*=": _binaryExpression("*="),
       "/=": _binaryExpression("~/="), // int only
+      "&=": _binaryExpression("&="),
+      "|=": _binaryExpression("|="),
       "[]": (node) { return "${translate(node[1])}[${_strip(translate(node[2]))}]"; },
       "p++": (node) { return "${translate(node[1])}++"; },
       "p--": (node) { return "${translate(node[1])}--"; },
@@ -1169,6 +1189,8 @@ class Translator {
       },
       "throw": (node) {
         emit("throw ${translate(node[1])};");
+      },
+      "pass": (node) {
       },
     };
     _resolver.beginScope();
