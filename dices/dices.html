@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Dices</title>
+    <link rel="stylesheet" href="dices.css">
+  </head>
+  <body>
+    <div class="cards">
+      <div class="card">
+        <h2>Frank Keller</h2>
+      
+        <p><a class="button" href="#" data-roll="3D6-D8">Schießen 3d6</a></p>
+        <p><span class="die">6</span>&rarr;<span class="die">3</span> <span class="die">2</span></p>
+      </div>
+      
+      <div class="card">
+        <p>Lorem ipsum dolor sit amet, consectetur, adipisci velit</p>
+        <div class="result"></div>
+      </div>
+    </div>
+
+    <script type="application/dart" src="dices.dart"></script>
+    <script src="https://cdn.firebase.com/v0/firebase.js"></script>
+    <script src="packages/browser/interop.js"></script>
+    <script src="packages/browser/dart.js"></script> <!-- must be last -->
+  </body>
+</html>

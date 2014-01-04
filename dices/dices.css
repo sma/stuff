@@ -1,0 +1,55 @@
+
+body {
+  font-family: Verdana;
+  font-size: 13px;
+  line-height: 20px;
+  background-color: #EEE;
+  color: #333;
+  margin: 0;
+}
+
+.cards {
+}
+
+.card {
+  background: #FFF;
+  border: 1px solid #DDD;
+  margin: 4px;
+  padding: 8px;
+}
+
+.card h2 {
+  margin: 0 0 8px;
+}
+
+.card .button {
+  font-weight: bold;
+  text-decoration: none;
+  color: #963;
+  border: 1px dotted #963;
+  padding: 1px 4px;
+}
+
+.card .button:hover {
+  background-color: #963;
+  color: #fff;
+}
+
+.card .die {
+  display: inline-block;
+  text-align: center;
+  height: 17px;
+  width: 17px;
+  border: 1px solid #963;
+  border-radius: 4px;
+  background-color: #963;
+  color: #fff;
+  line-height: 17px;
+}
+
+.card hr {
+  border-top: 1px solid #ddd;
+  border-bottom: 0;
+  margin: 8px 0;
+}
+
